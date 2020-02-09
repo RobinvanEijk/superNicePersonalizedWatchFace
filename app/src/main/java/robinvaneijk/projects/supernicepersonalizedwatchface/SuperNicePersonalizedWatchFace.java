@@ -199,15 +199,18 @@ public class SuperNicePersonalizedWatchFace extends CanvasWatchFaceService {
         public void onDraw(Canvas canvas, Rect bounds) {
             // Draw the background.
             if (isInAmbientMode()) {
-                canvas.drawBitmap(mGrayBackgroundBitmap, 0, 0, mBackgroundPaint);
+                canvas.drawColor(Color.BLACK);
+                mTextPaint.setColor(Color.GRAY);
             } else {
                 canvas.drawBitmap(mBackgroundBitmap, 0, 0, mBackgroundPaint);
+                mTextPaint.setColor(
+                        ContextCompat.getColor(getApplicationContext(), R.color.digital_text));
             }
 
             long now = System.currentTimeMillis();
             mCalendar.setTimeInMillis(now);
 
-            String text = String.format("%02d:%02d", mCalendar.get(Calendar.HOUR), mCalendar.get(Calendar.MINUTE));
+            String text = String.format("%02d:%02d", mCalendar.get(Calendar.HOUR_OF_DAY), mCalendar.get(Calendar.MINUTE));
             canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
         }
 
@@ -255,6 +258,7 @@ public class SuperNicePersonalizedWatchFace extends CanvasWatchFaceService {
             Paint grayPaint = new Paint();
             ColorMatrix colorMatrix = new ColorMatrix();
             colorMatrix.setSaturation(0);
+            colorMatrix.setSaturation(10);
             ColorMatrixColorFilter filter = new ColorMatrixColorFilter(colorMatrix);
             grayPaint.setColorFilter(filter);
             canvas.drawBitmap(mBackgroundBitmap, 0, 0, grayPaint);
