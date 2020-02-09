@@ -23,6 +23,7 @@ import androidx.palette.graphics.Palette;
 
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
+import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
 
@@ -114,12 +115,12 @@ public class SuperNicePersonalizedWatchFace extends CanvasWatchFaceService {
             super.onCreate(holder);
 
             setWatchFaceStyle(new WatchFaceStyle.Builder(SuperNicePersonalizedWatchFace.this)
+                    .setAccentColor(0xff000000)
+                    .setShowUnreadCountIndicator(true)
+                    .setViewProtectionMode(WatchFaceStyle.PROTECT_STATUS_BAR)
                     .build());
 
             mCalendar = Calendar.getInstance();
-
-            Resources resources = SuperNicePersonalizedWatchFace.this.getResources();
-            mYOffset = resources.getDimension(R.dimen.digital_y_offset);
 
             initializeBackground();
             initializeWatchFace();
@@ -168,21 +169,6 @@ public class SuperNicePersonalizedWatchFace extends CanvasWatchFaceService {
         }
 
         @Override
-        public void onApplyWindowInsets(WindowInsets insets) {
-            super.onApplyWindowInsets(insets);
-
-            // Load resources that have alternate values for round watches.
-            Resources resources = SuperNicePersonalizedWatchFace.this.getResources();
-            boolean isRound = insets.isRound();
-            mXOffset = resources.getDimension(isRound
-                    ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
-            float textSize = resources.getDimension(isRound
-                    ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
-
-            mTextPaint.setTextSize(textSize);
-        }
-
-        @Override
         public void onPropertiesChanged(Bundle properties) {
             super.onPropertiesChanged(properties);
             mLowBitAmbient = properties.getBoolean(PROPERTY_LOW_BIT_AMBIENT, false);
@@ -217,17 +203,11 @@ public class SuperNicePersonalizedWatchFace extends CanvasWatchFaceService {
             } else {
                 canvas.drawBitmap(mBackgroundBitmap, 0, 0, mBackgroundPaint);
             }
-            
+
             long now = System.currentTimeMillis();
             mCalendar.setTimeInMillis(now);
 
-            // Draw H:MM in ambient mode or H:MM:SS in interactive mode.
-//            String text = mAmbient
-//                    ? String.format("%d:%02d", mCalendar.get(Calendar.HOUR),
-//                    mCalendar.get(Calendar.MINUTE))
-//                    : String.format("%d:%02d:%02d", mCalendar.get(Calendar.HOUR),
-//                    mCalendar.get(Calendar.MINUTE), mCalendar.get(Calendar.SECOND));
-            String text = String.format("%d:%02d", mCalendar.get(Calendar.HOUR), mCalendar.get(Calendar.MINUTE));
+            String text = String.format("%02d:%02d", mCalendar.get(Calendar.HOUR), mCalendar.get(Calendar.MINUTE));
             canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
         }
 
@@ -235,20 +215,15 @@ public class SuperNicePersonalizedWatchFace extends CanvasWatchFaceService {
         public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             super.onSurfaceChanged(holder, format, width, height);
 
-//            /*
-//             * Find the coordinates of the center point on the screen, and ignore the window
-//             * insets, so that, on round watches with a "chin", the watch face is centered on the
-//             * entire screen, not just the usable portion.
-//             */
-//            mCenterX = width / 2f;
-//            mCenterY = height / 2f;
-
             /* Scale loaded background image (more efficient) if surface dimensions change. */
             float scale = ((float) width) / (float) mBackgroundBitmap.getWidth();
 
             mBackgroundBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap,
                     (int) (mBackgroundBitmap.getWidth() * scale),
                     (int) (mBackgroundBitmap.getHeight() * scale), true);
+
+            mXOffset = width / 2f;
+            mYOffset = width / 3.3f;
 
             /*
              * Create a gray version of the image only if it will look nice on the device in
@@ -267,7 +242,7 @@ public class SuperNicePersonalizedWatchFace extends CanvasWatchFaceService {
 
         private void initializeBackground() {
             mBackgroundPaint = new Paint();
-            mBackgroundPaint.setColor(Color.BLACK);
+            mBackgroundPaint.setColor(Color.DKGRAY);
             mBackgroundBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.mountains_bg);
         }
 
@@ -286,11 +261,15 @@ public class SuperNicePersonalizedWatchFace extends CanvasWatchFaceService {
         }
 
         private void initializeWatchFace() {
+            Resources resources = SuperNicePersonalizedWatchFace.this.getResources();
+            float textSize = resources.getDimension(R.dimen.digital_text_size);
             mTextPaint = new Paint();
-            mTextPaint.setTypeface(NORMAL_TYPEFACE);
+            mTextPaint.setTypeface(NORMAL_TYPEFACE  );
             mTextPaint.setAntiAlias(true);
             mTextPaint.setColor(
                     ContextCompat.getColor(getApplicationContext(), R.color.digital_text));
+            mTextPaint.setTextAlign(Paint.Align.CENTER);
+            mTextPaint.setTextSize(textSize);
         }
 
         /**
